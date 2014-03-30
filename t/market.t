@@ -2,6 +2,7 @@ use v6;
 use Test;
 use WebService::Justcoin;
 
+plan 18;
 
 # markets()
 {
@@ -45,6 +46,7 @@ use WebService::Justcoin;
 }
 
 # TODO: market-vohlc
+ok WebService::Justcoin.new.market-vohlc("") ~~ X::NYI, "vohlc NYI";
 
 sub response_markets() { q:to/EOR/;
 [
@@ -999,4 +1001,5 @@ q:to/EOR/;
 }
 EOR
 }
+
 # vim: ft=perl6
