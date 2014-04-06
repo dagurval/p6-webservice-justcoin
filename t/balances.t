@@ -2,12 +2,14 @@ use v6;
 use Test;
 use WebService::Justcoin;
 
-my $j := WebService::Justcoin.new(:url-fetcher(sub ($) { }));
+plan 6;
+
+my $j := WebService::Justcoin.new(:url-get(sub ($) { }));
 dies_ok { $j.balances() }, "method requires API key";
 
 $j := WebService::Justcoin.new(
         :api-key("wow-so-nice-key"),
-        :url-fetcher(sub ($) { balances-response() }));
+        :url-get(sub ($) { balances-response() }));
 
 my @balances = $j.balances();
 ok @balances.elems > 1, "got balances";

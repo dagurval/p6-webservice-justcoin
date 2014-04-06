@@ -3,18 +3,25 @@ use JSON::Tiny;
 
 class WebService::Justcoin {
 
-    has Callable $!url-fetcher;
     has Str $!base-url = "https://justcoin.com/api/v1";
+    has Str $!api-key;
 
-    method markets() {
-        my $json = $!url-fetcher($!base-url ~ "/markets");
+    has Callable $!url-get;
+    has Callable $!url-post;
+    has Callable $!url-delete;
+
+    method markets(:$id?) {
+        my $json = $!url-get($!base-url ~ "/markets");
 
         # .flat is workaround, so we don't get array in array (for some reason?)
-        return from-json($json).flat;
+        my @res := from-json($json).flat;
+        return @res unless defined $id;
+        @res = grep { $_{"id"} ~~ $id }, @res;
+        return @res.elems ?? @res.pop !! Hash
     }
 
     method market-depth(Str $market-id) {
-        my $json = $!url-fetcher($!base-url ~ "/markets/$market-id/depth");
+        my $json = $!url-get($!base-url ~ "/markets/$market-id/depth");
         return from-json($json);
 
     }
@@ -23,9 +30,108 @@ class WebService::Justcoin {
         X::NYI.new;
     }
 
-    submethod BUILD(*%args) {
-        $!url-fetcher = %args{"url-fetcher"} 
-            or die "url-fetcher not implemented";
+    method currencies {
+        from-json($!url-get(
+            $!base-url ~ "/currencies")).flat
     }
 
+    method orders {
+        my @orders := from-json($!url-get(self!add-key(
+            $!base-url ~ "/orders"))).flat;
+        map { 
+            $_{"createdAt"} ~~ s/\.\d+//;
+            $_{"createdAt"} = DateTime.new($_{"createdAt"});
+            $_;
+        }, @orders;
+    }
+
+    method create-order(
+            Str :$market!, # which market to buy in
+            Rat :$amount!, # amount to buy,
+            Str :$type!, # bid or ask
+            Rat :$price? = Rat, # if undefined, palced as market order
+            ) { 
+        die "type is not valid, must be 'bid' or 'ask'"
+            unless $type ~~ any <bid ask>;
+
+        my $order = $!url-post(self!add-key($!base-url ~ "/orders"), {
+            market => $market,
+            amount => $amount,
+            type => $type,
+            price => $price,
+        });
+
+        return from-json($order);
+    }
+
+    method cancel-order(Int $id) {
+        $!url-delete(self!add-key($!base-url ~ "/orders/$id"));
+        return;
+    }
+
+    method balances {
+        from-json($!url-get(self!add-key(
+            $!base-url ~ "/balances"))).flat;
+    }
+
+    method !add-key($url) {
+        self!require-api-key();
+        if $url ~~ /\?/ {
+            return $url ~ "&key=" ~ $!api-key;
+        }
+        return $url ~ "?key=" ~ $!api-key;
+    }
+
+    method !require-api-key() {
+        fail "method requires API key, which is not set"
+            unless $!api-key;
+    }
+
+    submethod BUILD(*%args) {
+        $!url-get = %args{"url-get"} 
+            || sub ($u) { die "url-get not set"; }
+
+        $!url-post = %args{'url-post'}
+            || sub ($u, %d) { die "url-post not set" }
+
+        $!url-delete = %args{'url-delete'}
+            || sub ($u) { die "url-delete not set" }
+
+        if %args{'api-key'} {
+            $!api-key = %args{'api-key'};
+        }
+    }
 }
+
+sub ugly-curl-get ($url) is export {
+    my $tmpfile = IO::Path.new(IO::Spec.tmpdir).child(('a'..'z').pick(10).join);
+    LEAVE { unlink $tmpfile }
+    my $status = shell "curl -o $tmpfile -s -f $url";
+    my $contents = slurp $tmpfile;
+    fail "error fetching $url - contents: $contents"
+        unless $status.exit == 0;
+    return $contents;
+}
+
+sub ugly-curl-post ($url, %params) is export {
+    my $tmpfile = IO::Path.new(IO::Spec.tmpdir).child(('a'..'z').pick(10).join);
+    LEAVE { unlink $tmpfile }
+    my $datastr = "";
+
+    for %params.keys -> $k {
+        next unless defined %params{$k};
+        $datastr ~= "$k=%params{$k}&";
+    }
+    my $cmd = "curl --data '$datastr' -o $tmpfile -s -f $url";
+    my $status = shell $cmd;
+    my $contents = slurp $tmpfile;
+    fail "error fetching $url - contents: $contents"
+        unless $status.exit == 0;
+    return $contents;
+
+}
+
+sub ugly-curl-delete ($url) is export {
+    die "TODO";
+}
+

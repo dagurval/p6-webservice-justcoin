@@ -5,7 +5,7 @@ use WebService::Justcoin;
 plan 5;
 
 my $j := WebService::Justcoin.new(
-        :url-fetcher(sub ($url) { currencies-response() }));
+        :url-get(sub ($url) { currencies-response() }));
 
 my @currencies = $j.currencies();
 ok @currencies.elems > 1, "got currencies";

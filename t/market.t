@@ -2,12 +2,12 @@ use v6;
 use Test;
 use WebService::Justcoin;
 
-plan 18;
+plan 20;
 
 # markets()
 {
     my $j := WebService::Justcoin.new(
-            :url-fetcher(sub ($url) { response_markets() }));
+            :url-get(sub ($url) { response_markets() }));
 
     my @markets = $j.markets();
     ok @markets.elems > 1, "got markets";
@@ -23,10 +23,23 @@ plan 18;
     ok +$f{"scale"}, "got scale";
 }
 
+# single market
+{
+
+    my $j := WebService::Justcoin.new(
+            :url-get(sub ($url) { response_markets() }));
+
+    my %market = $j.markets(:id("BTCNOK"));
+    is %market{"id"}, "BTCNOK", "Fetched BTCNOK market";
+
+    %market = $j.markets(:id("Does not exist"));
+    ok not %market, "didn't get an invalid market";
+}
+
 # market-depth($market-id)
 {
     my $j := WebService::Justcoin.new(
-            :url-fetcher(sub ($url) { response-depth() }));
+            :url-get(sub ($url) { response-depth() }));
     my %depth = $j.market-depth("BTCNOK");
     ok %depth{'bids'}:exists, "has bids in response";
     ok %depth{'asks'}:exists, "has asks in response";
@@ -36,7 +49,7 @@ plan 18;
 
     # empty order book
     $j := WebService::Justcoin.new(
-            :url-fetcher(sub ($url) { response-no-depth() }));
+            :url-get(sub ($url) { response-no-depth() }));
     %depth = $j.market-depth("NON-EXISTING-MARKET");
     ok %depth{'bids'}:exists, "has bids in response";
     ok %depth{'asks'}:exists, "has asks in response";
