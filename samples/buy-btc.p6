@@ -21,11 +21,10 @@ sub find-ok-price(WebService::Justcoin $j) {
     return $ok-price;
 }
 
-my $key = "2352ac37573e32915542af0f1a257061c78407332b2f98602724990ce562f9ff";
 my $j = WebService::Justcoin.new(
         :url-get(&ugly-curl-get),
         :url-post(&ugly-curl-post),
-        :api-key($key));
+        :api-key($API-KEY));
 
 my $ok-price = find-ok-price($j);
 my $btcamount = $SPEND-AMOUNT / $ok-price;
