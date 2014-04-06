@@ -132,6 +132,12 @@ sub ugly-curl-post ($url, %params) is export {
 }
 
 sub ugly-curl-delete ($url) is export {
-    die "TODO";
+    my $tmpfile = IO::Path.new(IO::Spec.tmpdir).child(('a'..'z').pick(10).join);
+    LEAVE { unlink $tmpfile }
+    my $status = shell "curl -i -H 'Accept: application/json' -X DELETE -o $tmpfile -s -f $url";
+    my $contents = slurp $tmpfile;
+    fail "error fetching $url - contents: $contents"
+        unless $status.exit == 0;
+    return $contents;
 }
 
