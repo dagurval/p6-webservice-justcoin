@@ -127,15 +127,9 @@ sub ugly-curl-get ($url) is export {
     LEAVE { unlink $tmpfile }
     my $status = shell "curl -o $tmpfile -s -f $url";
     my $contents = slurp $tmpfile;
-    say "contents: $contents";
     fail "error fetching $url - contents: $contents"
         unless $status.exit == 0;
     return $contents;
-}
-
-sub to-dt(Str $timestamp is rw) {
-    $timestamp ~~ s/\.\d+//;
-    $timestamp = DateTime.new($timestamp);
 }
 
 
@@ -149,10 +143,8 @@ sub ugly-curl-post ($url, %params) is export {
         $datastr ~= "$k=%params{$k}&";
     }
     my $cmd = "curl --data '$datastr' -o $tmpfile -s -f $url";
-    say "post: ", $cmd;
     my $status = shell $cmd;
     my $contents = slurp $tmpfile;
-    say "contents: ", $contents;
     fail "error fetching $url - contents: $contents"
         unless $status.exit == 0;
     return $contents;
@@ -167,5 +159,10 @@ sub ugly-curl-delete ($url) is export {
     fail "error fetching $url - contents: $contents"
         unless $status.exit == 0;
     return $contents;
+}
+
+sub to-dt(Str $timestamp is rw) {
+    $timestamp ~~ s/\.\d+//;
+    $timestamp = DateTime.new($timestamp);
 }
 
