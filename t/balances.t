@@ -2,7 +2,7 @@ use v6;
 use Test;
 use WebService::Justcoin;
 
-plan 6;
+plan 10;
 
 my $j := WebService::Justcoin.new(:url-get(sub ($) { }));
 dies_ok { $j.balances() }, "method requires API key";
@@ -18,6 +18,14 @@ ok $b{'currency'}:exists, "has currency";
 ok $b{'balance'}:exists, "has balance";
 ok $b{'hold'}:exists, "has hold";
 ok $b{'available'}:exists, "available";
+
+{ # currency provided
+    my %btc = $j.balances(currency => "BTC");
+    ok %btc{'currency'}:exists, "has currency";
+    ok %btc{'balance'}:exists, "has balance";
+    ok %btc{'hold'}:exists, "has hold";
+    ok %btc{'available'}:exists, "available";
+}
 
 sub balances-response() {
     q:to/EOR/;

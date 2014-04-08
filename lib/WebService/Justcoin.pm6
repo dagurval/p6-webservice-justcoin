@@ -69,9 +69,14 @@ class WebService::Justcoin {
         return;
     }
 
-    method balances {
-        from-json($!url-get(self!add-key(
+    method balances(Str :$currency?) {
+        my @b = from-json($!url-get(self!add-key(
             $!base-url ~ "/balances"))).flat;
+        
+        return @b unless defined $currency;
+        
+        @b = grep { $_{"currency"} ~~ $currency }, @b;
+        return @b.elems ?? @b.pop !! Hash
     }
 
     method create-withdraw-btc(Str :$address, Rat :$amount) {

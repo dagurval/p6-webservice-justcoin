@@ -68,8 +68,10 @@ C<type> can be either "ask" or "bid". C<price> is optional and your order will b
 =head3 cancel-order(Int $id)
 Cancel order with given ID.
 
-=head3 balances()
+=head3 balances(Str :$currency?)
 Lists your balances for all currencies.
+
+If C<currency> is provided, only your balance for that currency will be returned.
 
 =head3 withdraws()
 Lists all your withdraws.
