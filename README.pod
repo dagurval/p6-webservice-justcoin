@@ -21,7 +21,7 @@ WebService::Justcoin - Interface to Justcoin Bitcoin marketplace.
 
 =head1 DESCRIPTION
 
-Justcoin is a Norwegian Bitcoin marketplace. C<WebService::Justcoin> implements the documented parts[1] of its API and some of it's undocumented parts[2].
+Justcoin is a Norwegian Bitcoin marketplace. C<WebService::Justcoin> implements the documented parts[1] of its API and some of its undocumented parts[2].
 
 This module is alpha quality. Use this module at own risk!
 
