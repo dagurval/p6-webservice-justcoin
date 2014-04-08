@@ -92,7 +92,7 @@ class WebService::Justcoin {
 
         map {
             to-dt($_{"created"});
-            to-dt($_{"completed"});
+            $_{"completed"} ?? to-dt($_{"completed"}) !! DateTime;
             $_;
         }, @withdraws;
 

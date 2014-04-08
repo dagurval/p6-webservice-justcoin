@@ -2,7 +2,7 @@ use v6;
 use WebService::Justcoin;
 use Test;
 
-plan 10;
+plan 12;
 
 { # create-withdraw
     my $j = WebService::Justcoin.new(
@@ -30,6 +30,15 @@ plan 10;
     ok ?$w{"completed"} && $w{"completed"} ~~ DateTime, "has completed, is DateTime";
     ok $w{"method"}, "has method";
     ok $w{"state"}, "has state";
+}
+
+{
+    # handle non-completed
+    my $resp = '[{"created":"2014-04-08T18:06:26.566Z","completed":null}]';
+    my $j = WebService::Justcoin.new(:api-key("a"), :url-get(sub ($) { $resp }));
+    my @w = $j.withdraws();
+    ok @w[0]{"completed"}:exists, "completed exists";
+    ok not defined(@w[0]{"completed"}), "completed is not defined";
 }
 
 sub create-withdraw-response {
