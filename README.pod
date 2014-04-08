@@ -57,7 +57,7 @@ Market depth for given market (all asks and bids).
 =head2 currencies
 Currencies supported by Justcoin.
 
-=head3 orders
+=head3 orders()
 List of your current (unmatched) orders.
 
 =head3 create-orders(:market, :amount, :type, :price?)
@@ -68,5 +68,11 @@ C<type> can be either "ask" or "bid". C<price> is optional and your order will b
 =head3 cancel-order(Int $id)
 Cancel order with given ID.
 
-=head3 balances
+=head3 balances()
 Lists your balances for all currencies.
+
+=head3 withdraws()
+Lists all your withdraws.
+
+=head3 create-withdraw-btc(Str :$address, Rat :$amount)
+Withdraw C<$amount> of BTC to address C<$address>.

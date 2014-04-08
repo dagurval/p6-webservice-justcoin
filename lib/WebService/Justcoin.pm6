@@ -35,12 +35,12 @@ class WebService::Justcoin {
             $!base-url ~ "/currencies")).flat
     }
 
+
     method orders {
         my @orders := from-json($!url-get(self!add-key(
             $!base-url ~ "/orders"))).flat;
         map { 
-            $_{"createdAt"} ~~ s/\.\d+//;
-            $_{"createdAt"} = DateTime.new($_{"createdAt"});
+            to-dt($_{"createdAt"});
             $_;
         }, @orders;
     }
@@ -72,6 +72,25 @@ class WebService::Justcoin {
     method balances {
         from-json($!url-get(self!add-key(
             $!base-url ~ "/balances"))).flat;
+    }
+
+    method create-withdraw-btc(Str :$address, Rat :$amount) {
+        from-json($!url-post(self!add-key($!base-url ~ "/btc/out"), {
+                address => $address,
+                amount => $amount,
+            }));
+    }
+
+    method withdraws() {
+        my @withdraws = from-json($!url-get(
+                    self!add-key($!base-url ~ "/withdraws"))).flat;
+
+        map {
+            to-dt($_{"created"});
+            to-dt($_{"completed"});
+            $_;
+        }, @withdraws;
+
     }
 
     method !add-key($url) {
@@ -108,10 +127,17 @@ sub ugly-curl-get ($url) is export {
     LEAVE { unlink $tmpfile }
     my $status = shell "curl -o $tmpfile -s -f $url";
     my $contents = slurp $tmpfile;
+    say "contents: $contents";
     fail "error fetching $url - contents: $contents"
         unless $status.exit == 0;
     return $contents;
 }
+
+sub to-dt(Str $timestamp is rw) {
+    $timestamp ~~ s/\.\d+//;
+    $timestamp = DateTime.new($timestamp);
+}
+
 
 sub ugly-curl-post ($url, %params) is export {
     my $tmpfile = IO::Path.new(IO::Spec.tmpdir).child(('a'..'z').pick(10).join);
@@ -123,8 +149,10 @@ sub ugly-curl-post ($url, %params) is export {
         $datastr ~= "$k=%params{$k}&";
     }
     my $cmd = "curl --data '$datastr' -o $tmpfile -s -f $url";
+    say "post: ", $cmd;
     my $status = shell $cmd;
     my $contents = slurp $tmpfile;
+    say "contents: ", $contents;
     fail "error fetching $url - contents: $contents"
         unless $status.exit == 0;
     return $contents;
