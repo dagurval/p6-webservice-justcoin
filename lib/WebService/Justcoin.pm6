@@ -137,21 +137,23 @@ sub ugly-curl-get ($url) is export {
     return $contents;
 }
 
+sub params-to-str(%params is copy) {
+    for keys %params -> $k {
+        %params{$k} = ~%params{$k}
+    }
+    return %params;
+}
 
-sub ugly-curl-post ($url, %params) is export {
+sub ugly-curl-post ($url, %params is copy) is export {
     my $tmpfile = IO::Path.new(IO::Spec.tmpdir).child(('a'..'z').pick(10).join);
     LEAVE { unlink $tmpfile }
-    my $datastr = "";
 
-    for %params.keys -> $k {
-        next unless defined %params{$k};
-        $datastr ~= "$k=%params{$k}&";
-    }
-    my $cmd = "curl --data '$datastr' -o $tmpfile -s -f $url";
+    my $datastr = to-json(params-to-str(%params));
+    my $cmd = "curl -f -H 'Content-Type: application/json' --data '$datastr' -o $tmpfile -s $url";
     my $status = shell $cmd;
-    my $contents = slurp $tmpfile;
-    fail "error fetching $url - contents: $contents"
+    fail "error posting '$url'"
         unless $status.exit == 0;
+    my $contents = slurp $tmpfile;
     return $contents;
 
 }
@@ -160,9 +162,9 @@ sub ugly-curl-delete ($url) is export {
     my $tmpfile = IO::Path.new(IO::Spec.tmpdir).child(('a'..'z').pick(10).join);
     LEAVE { unlink $tmpfile }
     my $status = shell "curl -i -H 'Accept: application/json' -X DELETE -o $tmpfile -s -f $url";
-    my $contents = slurp $tmpfile;
-    fail "error fetching $url - contents: $contents"
+    fail "error deleting $url"
         unless $status.exit == 0;
+    my $contents = slurp $tmpfile;
     return $contents;
 }
 
