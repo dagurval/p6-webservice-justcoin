@@ -5,7 +5,7 @@ use WebService::Justcoin;
 plan 10;
 
 my $j := WebService::Justcoin.new(:url-get(sub ($) { }));
-dies_ok { $j.balances() }, "method requires API key";
+dies-ok { $j.balances() }, "method requires API key";
 
 $j := WebService::Justcoin.new(
         :api-key("wow-so-nice-key"),
