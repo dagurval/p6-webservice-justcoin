@@ -20,7 +20,7 @@ ok $b{'hold'}:exists, "has hold";
 ok $b{'available'}:exists, "available";
 
 { # currency provided
-    my %btc = $j.balances(currency => "BTC");
+    my %btc := $j.balances(currency => "BTC");
     ok %btc{'currency'}:exists, "has currency";
     ok %btc{'balance'}:exists, "has balance";
     ok %btc{'hold'}:exists, "has hold";
