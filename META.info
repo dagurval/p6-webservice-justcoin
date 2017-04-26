@@ -1,6 +1,7 @@
 {
     "perl"        : "6.*",
     "name"        : "WebService::Justcoin",
+    "license"     : "Artistic-2.0",
     "version"     : "0.0.1",
     "description" : "Access to Justcoin trading API (Norwegian Bitcoin marketplace)",
     "author"      : "Dagur Valberg Johannsson",
