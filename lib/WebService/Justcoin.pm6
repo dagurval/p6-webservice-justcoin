@@ -14,10 +14,10 @@ class WebService::Justcoin {
         my $json = $!url-get($!base-url ~ "/markets");
 
         # .flat is workaround, so we don't get array in array (for some reason?)
-        my @res := from-json($json).flat;
+        my @res = from-json($json).flat;
         return @res unless defined $id;
         @res = grep { $_{"id"} ~~ $id }, @res;
-        return @res.elems ?? @res.pop !! Hash
+        return @res.elems ?? @res.pop !! {}
     }
 
     method market-depth(Str $market-id) {
@@ -37,7 +37,7 @@ class WebService::Justcoin {
 
 
     method orders {
-        my @orders := from-json($!url-get(self!add-key(
+        my @orders = from-json($!url-get(self!add-key(
             $!base-url ~ "/orders"))).flat;
         map { 
             to-dt($_{"createdAt"});
